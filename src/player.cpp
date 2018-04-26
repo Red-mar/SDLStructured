@@ -5,6 +5,7 @@
 #include "log.h"
 
 Player::Player(Window *window, float x, float y, int w, int h, int hp, float acceleration) : FallingObject(x, y, w, h),
+                                                                                             Damageable(hp),
                                                                                              window(window),
                                                                                              acceleration(acceleration),
                                                                                              stoppedThreshold(acceleration / 5.f),
@@ -12,7 +13,7 @@ Player::Player(Window *window, float x, float y, int w, int h, int hp, float acc
                                                                                              isJumping(false),
                                                                                              isDoubleJumping(false),
                                                                                              win(false),
-                                                                                             thrust(700),
+                                                                                             thrust(600),
                                                                                              damaging(false),
                                                                                              currentAnimation(nullptr),
                                                                                              soundEffects(nullptr),
@@ -33,7 +34,7 @@ Player::Player(Window *window, float x, float y, int w, int h, int hp, float acc
 
 Player::~Player()
 {
-    for(std::vector<Animation*>::iterator it = animations.begin(); it != animations.end(); it++ )
+    for (std::vector<Animation *>::iterator it = animations.begin(); it != animations.end(); it++)
     {
         delete (*it);
     }
@@ -106,7 +107,7 @@ void Player::update(float dt)
     }
 
     // isAlive?
-    if (true)
+    if (!isDead())
     {
         desiredPosition->addX(vx * dt);
         desiredPosition->addY(vy * dt);
@@ -122,7 +123,6 @@ void Player::render(float cameraX, float cameraY)
 
     equipment->update(0.f, facingDirection, position->x, position->y);
     equipment->render(cameraX, cameraY);
-    
 }
 
 void Player::updateInput()
@@ -195,6 +195,17 @@ void Player::updateInput()
     if (input->isKeyDown(KEY_KEYPAD_MINUS))
     {
         currentAnimation->setAnimationSpeed(currentAnimation->getAnimationSpeed() - 1);
+    }
+
+    if (input->isKeyDown(KEY_INSERT))
+    {
+        damage(10);
+        Log::debug(std::to_string(getHitpoints()));
+    }
+    if (input->isKeyDown(KEY_HOME))
+    {
+        heal(10);
+        Log::debug(std::to_string(getHitpoints()));
     }
 }
 

@@ -10,8 +10,9 @@
 #include "particleemitter.h"
 #include "equipment.h"
 #include "facingdirection.h"
+#include "damageable.h"
 
-class Player: public FallingObject
+class Player: public FallingObject, public Damageable
 {
     public:
         enum AnimationState { IDLE, RUNNING, JUMPING, LAYING, ANIMATION_MAX };
