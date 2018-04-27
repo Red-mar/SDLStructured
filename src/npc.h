@@ -11,14 +11,14 @@
 #include "facingdirection.h"
 #include "equipment.h"
 
-class NPC : public FallingObject
+class Npc : public FallingObject
 {
     public: 
         enum AnimationState { IDLE, RUNNING, JUMPING, ANIMATION_MAX};
         enum ActionState { WALK_LEFT, WALK_RIGHT, STAND_STILL, NO_ACTION, ACTION_MAX};
 
-        NPC(Window * window, float x, float y, int w, int h, int hp, float acceleration);
-        virtual ~NPC();
+        Npc(Window * window, float x, float y, int w, int h, int hp, float acceleration);
+        virtual ~Npc();
 
         void update(float dt);
         void render(float cameraX, float cameraY);

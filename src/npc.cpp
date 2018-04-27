@@ -1,6 +1,6 @@
 #include "npc.h"
 
-NPC::NPC(Window *window, float x, float y, int w, int h, int hp, float acceleration) : FallingObject(x, y, w, h),
+Npc::Npc(Window *window, float x, float y, int w, int h, int hp, float acceleration) : FallingObject(x, y, w, h),
                                                                                        window(window),
                                                                                        acceleration(acceleration),
                                                                                        stoppedThreshold(acceleration / 5.f),
@@ -13,6 +13,8 @@ NPC::NPC(Window *window, float x, float y, int w, int h, int hp, float accelerat
                                                                                        equipment(nullptr),
                                                                                        frametime(rand()%10)
 {
+    addType(NPC_TYPE);
+    addType(DAMAGEABLEOBJECT_TYPE);
     soundEffects = SoundEffects::getInstance();
     equipment = new Equipment();
 
@@ -39,7 +41,7 @@ NPC::NPC(Window *window, float x, float y, int w, int h, int hp, float accelerat
     currentAnimation = animations[IDLE];
 }
 
-NPC::~NPC()
+Npc::~Npc()
 {
     for(std::vector<Animation*>::iterator it = animations.begin(); it != animations.end(); it++ )
     {
@@ -48,7 +50,7 @@ NPC::~NPC()
     delete equipment;
 }
 
-void NPC::update(float dt)
+void Npc::update(float dt)
 {
     preUpdate(dt);
     currentAnimation->update(dt);
@@ -113,7 +115,7 @@ void NPC::update(float dt)
     }
 }
 
-void NPC::render(float cameraX, float cameraY)
+void Npc::render(float cameraX, float cameraY)
 {
     currentAnimation->setFlip((facingDirection == RIGHT) ? SDL_FLIP_NONE : SDL_FLIP_HORIZONTAL);
 
@@ -124,24 +126,24 @@ void NPC::render(float cameraX, float cameraY)
     equipment->render(cameraX, cameraY);
 }
 
-void NPC::jump(bool willJump)
+void Npc::jump(bool willJump)
 {
     soundEffects->play("jump");
     currentAnimation = animations[JUMPING];
     vy = (-1 * thrust);
 }
 
-bool NPC::isFalling()
+bool Npc::isFalling()
 {
     return (vy > 150.f ? true : false);
 }
 
-void NPC::setMovingPlatform(Block *platform)
+void Npc::setMovingPlatform(Block *platform)
 {
     movingPlatform = platform;
 }
 
-void NPC::doMovement()
+void Npc::doMovement()
 {
     if (actionState == NO_ACTION)
     {

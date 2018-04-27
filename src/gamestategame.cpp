@@ -62,10 +62,12 @@ void GameStateGame::load(int stack)
     //newNPC->setBoundary(gameArea);
     //objects.push_back(newNPC);
 
-    fallingObjects.push_back(player);
+    objects.push_back(player);
+    collisionDetector.registerObserver(player);
     for (auto tile : tileMap->getTiles())
     {
         objects.push_back(tile);
+        collisionDetector.registerObserver(tile);
     }
 
     MessageLog *log = new MessageLog(window, 0, 0, 100, 100);
@@ -87,16 +89,6 @@ int GameStateGame::unload()
         delete (*it);
     }
     objects.clear();
-    for (std::vector<FallingObject *>::iterator it = fallingObjects.begin(); it != fallingObjects.end(); it++)
-    {
-        delete (*it);
-    }
-    fallingObjects.clear();
-    for (std::vector<Block *>::iterator it = blocks.begin(); it != blocks.end(); it++)
-    {
-        delete (*it);
-    }
-    blocks.clear();
 
     for (std::unordered_map<std::string, UIElement *>::iterator it = uiElements.begin(); it != uiElements.end(); it++)
     {
@@ -114,33 +106,27 @@ GameState::StateCode GameStateGame::update(float dt)
     {
         object->update(dt);
     }
-    for (auto fallingObject : fallingObjects)
-    {
-        fallingObject->update(dt);
-    }
-    for (auto block : blocks)
-    {
-        block->update(dt);
-    }
     for (auto element : uiElements)
     {
         element.second->update(dt);
     }
 
-    //((Label *)uiElements["lblPlayerpos"])->setText("x:" + std::to_string(player->position->x) + " y:" + std::to_string(player->position->y));
+    ((Label *)uiElements["lblPlayerpos"])->setText("hp:" + std::to_string(player->getHitpoints()));
 
     camera->update(dt);
     checkCollisions();
+
+    if (player->isDead())
+    {
+        currentState = GameState::MAIN_MENU;
+    }
 
     return currentState;
 }
 
 void GameStateGame::checkCollisions()
 {
-    for (auto fallingObject : fallingObjects)
-    {
-        fallingObject->commitMovement(objects, fallingObjects, blocks);
-    }
+    collisionDetector.update();
 }
 
 void GameStateGame::render()
@@ -150,14 +136,10 @@ void GameStateGame::render()
     testSprite->render(0 - camera->getX(), 960 - camera->getY());
     testSprite->render(1280 - camera->getX(), 960 - camera->getY());
 
-    for (auto fallingObject : fallingObjects)
+    for(auto object : objects)
     {
-        fallingObject->render(camera->getX(), camera->getY());
-    }
-    for (auto block : blocks)
-    {
-        block->render(camera->getX(), camera->getY());
-    }
+        object->render(camera->getX(), camera->getY());
+    }   
     tileMap->render(camera->getX(), camera->getY());
 
     for (auto element : uiElements)
@@ -193,12 +175,10 @@ void GameStateGame::updateInput()
 
     if (input->isKeyUp(KEY_4))
     {
-        for (size_t i = 0; i < 100; i++)
-        {
-                    NPC *newNPC = new NPC(window, 39.f, 64.f, 39, 64, 100, 250.0f);
+        Npc *newNPC = new Npc(window, 39.f, 64.f, 39, 64, 100, 250.0f);
         newNPC->setBoundary(gameArea);
-        fallingObjects.push_back(newNPC);   
-        }
+        objects.push_back(newNPC);
+        collisionDetector.registerObserver(newNPC);
     }
 
     if (input->isKeyDown(KEY_5))
@@ -257,6 +237,7 @@ void GameStateGame::updateInput()
         {
             if (Tile *tile = dynamic_cast<Tile *>(*it))
             {
+                collisionDetector.unregisterObserver(tile);
                 delete tile;
                 it = objects.erase(it);
             }
@@ -268,6 +249,7 @@ void GameStateGame::updateInput()
 
         for (auto tile : tileMap->getTiles())
         {
+            collisionDetector.registerObserver(tile);
             objects.push_back(tile);
         }
     }

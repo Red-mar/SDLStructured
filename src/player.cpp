@@ -20,6 +20,8 @@ Player::Player(Window *window, float x, float y, int w, int h, int hp, float acc
                                                                                              movingPlatform(nullptr),
                                                                                              equipment(nullptr)
 {
+    addType(PLAYER_TYPE);
+    addType(DAMAGEABLEOBJECT_TYPE);
     soundEffects = SoundEffects::getInstance();
     equipment = new Equipment();
     equipment->equip(EquipmentType::HEAD, new Item(window, "cool hat", "assets/hat.png", 5, 10));
@@ -67,7 +69,7 @@ void Player::update(float dt)
 
     float a = 8.0f * dt;
     if (boundaryStatus == OFF_GROUND)
-        a *= 0.1f;
+        a *= 0.07f;
 
     // http://higherorderfun.com/blog/2012/05/20/the-guide-to-implementing-2d-platformers/
     this->vx = (a * this->targetVx) + ((1 - a) * this->vx);
@@ -84,18 +86,6 @@ void Player::update(float dt)
             currentAnimation = animations[IDLE];
     }
 
-    if (damaging)
-    {
-        if (facingDirection == RIGHT)
-        {
-            vx = -10;
-        }
-        else
-        {
-            vx = 10;
-        }
-    }
-
     if (movingPlatform != NULL)
     {
         position->x -= movingPlatform->getNoteSpeed() * dt;
@@ -106,7 +96,27 @@ void Player::update(float dt)
         movingPlatform = NULL;
     }
 
-    // isAlive?
+    if (damaging)
+    {
+        if (lastCollisionHit.right)
+        {
+            boundaryStatus = OFF_GROUND;
+            currentAnimation = animations[JUMPING];
+            vx = -300;
+            vy = -250;
+        }
+        else if (lastCollisionHit.left)
+        {
+            boundaryStatus = OFF_GROUND;
+            currentAnimation = animations[JUMPING];
+            vx = 300;
+            vy = -250;
+        }
+
+        damaging = false;
+        lastCollisionHit = {false, false, false, false};
+    }
+
     if (!isDead())
     {
         desiredPosition->addX(vx * dt);
@@ -242,6 +252,7 @@ void Player::fall()
 
 void Player::die()
 {
+    damage(100000);
 }
 
 bool Player::isFalling()
@@ -257,4 +268,11 @@ bool Player::hasWon()
 void Player::setMovingplatform(Block *platform)
 {
     movingPlatform = platform;
+}
+
+void Player::collision(Observer *observer, CollisionHit hit)
+{
+    lastCollisionHit = hit;
+    damaging = true;
+    damage(10);
 }

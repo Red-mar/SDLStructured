@@ -18,6 +18,7 @@
 #include "UI\Label.h"
 #include "UI\uielement.h"
 #include "tilemap.h"
+#include "collisiondetector.h"
 
 class GameStateGame: public GameState
 {
@@ -33,6 +34,7 @@ class GameStateGame: public GameState
     private:
         void updateInput();
         void checkCollisions();
+        CollisionDetector collisionDetector;
         GameState::StateCode currentState;
         Window* window;
         Music* bgMusic;
@@ -42,8 +44,6 @@ class GameStateGame: public GameState
         TileMap* tileMap;
         //Block* block;
         std::vector<GameObject*> objects;
-        std::vector<FallingObject*> fallingObjects;
-        std::vector<Block*> blocks;
         //std::vector<UIElement*> uiElements;
         std::unordered_map<std::string, UIElement*> uiElements;
 

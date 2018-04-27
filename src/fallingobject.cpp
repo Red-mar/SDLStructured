@@ -9,6 +9,7 @@ FallingObject::FallingObject(float x, float y, int w, int h) : GameObject(x, y, 
                                                                vx(0), vy(0),
                                                                ax(0), ay(0)
 {
+    addType(FALLINGOBJECT_TYPE);
     desiredPosition = new Rectangle();
 }
 
@@ -27,89 +28,12 @@ void FallingObject::preUpdate(float dt)
     vy += (PhysicsManager::gravityAcceleration * dt);
 }
 
-void FallingObject::commitMovement(std::vector<GameObject *> objects, std::vector<FallingObject*> fallingObjects, std::vector<Block*> blocks)
+void FallingObject::setVX(float nvx)
 {
-    float oldX = desiredPosition->x;
-    float oldY = desiredPosition->y;
-    float oldBoxX = box->x;
-    float oldBoxY = box->y;
+    vx = nvx;
+}
 
-    position->x -= box->x - desiredPosition->x;
-    desiredPosition->setX(position->x);
-    box->setX(desiredPosition->x);
-
-    for (auto object : objects)
-    {
-
-        if (this != object && collidedWith(object))
-        {
-            vx = 0;
-            position->x += oldBoxX - oldX;
-            desiredPosition->setX(position->x);
-            box->setX(desiredPosition->x);
-
-            if (box->center.x < object->box->center.x)
-            {
-                // others right
-                /* NOTE use for moving platform do not use dynamic cast for performance
-                if (Block *note = dynamic_cast<Block *>(object))
-                {
-                    vx = 0;
-                    position->x = (note->box->leftmost - box->w) - 2;
-                    box->setX(position->x);
-                }
-                */
-            }
-            else
-            {
-                /*
-                if (Block *note = dynamic_cast<Block *>(object))
-                {
-                    vx = 0;
-                    position->x = (note->box->rightmost) + 2;
-                    box->setX(position->x);
-                }
-                */
-                // others left
-            }
-        }
-    }
-
-    position->y -= box->y - desiredPosition->y;
-    desiredPosition->setY(position->y);
-    box->setY(desiredPosition->y);
-
-    for (auto object : objects)
-    {
-        if (this != object && collidedWith(object))
-        {
-            vy = 0;
-            position->y += oldBoxY - oldY;
-            desiredPosition->setY(position->y);
-            box->setY(desiredPosition->y);
-
-            if (box->center.y < object->box->center.y)
-            {
-                // others bottom
-                boundaryStatus = ON_GROUND;
-                /*
-                if (Block *note = dynamic_cast<Block *>(object))
-                {
-                    if (Player *player = dynamic_cast<Player *>(this))
-                    {
-                        player->setMovingplatform(note);
-                    }
-                }
-                */
-            }
-            else
-            {
-                // others top
-            }
-        }
-    }
-
-    box->copy(desiredPosition);
-
-    actOnBoundaries();
+void FallingObject::setVY(float nyx)
+{
+    vy = nyx;
 }

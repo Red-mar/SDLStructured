@@ -2,7 +2,16 @@
 #define GAMEOBJECT_H
 
 #include "shapes.h"
+#include "observer.h"
 #include "log.h"
+
+enum ObjectType
+{
+    FALLINGOBJECT_TYPE = 1,
+    DAMAGEABLEOBJECT_TYPE = 2,
+    PLAYER_TYPE = 4,
+    NPC_TYPE = 8
+};
 
 enum BoundaryStatus
 {
@@ -10,7 +19,7 @@ enum BoundaryStatus
     OFF_GROUND
 };
 
-class GameObject
+class GameObject : public Observer
 {
     public:
         GameObject(float x= 0.0f, float y = 0.0f, int w = 0, int h = 0);
@@ -38,8 +47,12 @@ class GameObject
         Rectangle* box;
         Rectangle boundary;
         BoundaryStatus boundaryStatus;
+        bool isType(ObjectType type);
+        void addType(ObjectType type);
+
     private:
         bool canCollide;
+        int objectType = 0;
 };
 
 #endif // !GAMEOBJECT_H

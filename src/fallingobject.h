@@ -12,8 +12,8 @@ class FallingObject : public GameObject
         virtual ~FallingObject();
 
         void preUpdate(float dt);
-
-        void commitMovement(std::vector<GameObject*> objects, std::vector<FallingObject*> fallingObjects, std::vector<Block*> blocks);
+        void setVX(float nvx);
+        void setVY(float nyx);
 
         Rectangle* desiredPosition;
     private:

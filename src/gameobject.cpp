@@ -3,6 +3,7 @@
 // Almost a purely virtual class
 
 GameObject::GameObject(float x, float y, int w, int h):
+	Observer(),
     position(nullptr),
     box(nullptr),
     boundary(-1, -1, -1, -1),
@@ -108,4 +109,14 @@ void GameObject::setCollision(bool collision)
 bool GameObject::isCollidable()
 {
 	return canCollide;
+}
+
+void GameObject::addType(ObjectType type)
+{
+	objectType |= type;
+}
+
+bool GameObject::isType(ObjectType type)
+{
+	return (objectType & type);
 }

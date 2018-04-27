@@ -37,13 +37,13 @@ class Player: public FallingObject, public Damageable
         bool hasWon();
 
         void die();
-        void died();
-
-        void dealDamage();
+        void collision(Observer* observer, CollisionHit hit);
     private:
         Window* window;
         float acceleration;
         float stoppedThreshold;
+
+        CollisionHit lastCollisionHit;
 
         Equipment* equipment;
         Animation* currentAnimation;
