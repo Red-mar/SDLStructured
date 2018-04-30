@@ -36,6 +36,7 @@ class Player: public FallingObject, public Damageable
         bool isFalling();
         bool hasWon();
 
+
         void die();
         void collision(Observer* observer, CollisionHit hit);
     private:
@@ -46,7 +47,7 @@ class Player: public FallingObject, public Damageable
         CollisionHit lastCollisionHit;
 
         Equipment* equipment;
-        Animation* currentAnimation;
+        AnimationState currentAnimation;
         std::vector<Animation*> animations;
 
         SoundEffects* soundEffects;
@@ -63,11 +64,14 @@ class Player: public FallingObject, public Damageable
 
         bool isJumping;
         bool isDoubleJumping;
+        bool isLayingDown;
 
         bool win;
 
         float thrust;
         bool damaging;
+
+        void updateAnimation();
 };
 
 #endif // !PLAYER_H

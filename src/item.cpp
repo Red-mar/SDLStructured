@@ -1,13 +1,12 @@
 #include "item.h"
 
-Item::Item(Window* window, std::string name, std::string filename, int xOffset, int yOffset) :
-    name(name),
-    xOffset(xOffset),
-    yOffset(yOffset),
-    sprite(nullptr),
-    particleEmitter(nullptr),
-    posX(0),
-    posY(0)
+Item::Item(Window *window, std::string name, std::string filename, int xOffset, int yOffset) : name(name),
+                                                                                               xOffset(xOffset),
+                                                                                               yOffset(yOffset),
+                                                                                               sprite(nullptr),
+                                                                                               particleEmitter(nullptr),
+                                                                                               posX(0),
+                                                                                               posY(0)
 {
     sprite = new Sprite(window, filename);
 }
@@ -18,19 +17,28 @@ Item::~Item()
     delete particleEmitter;
 }
 
-void Item::update(float dt, float x, float y)
+void Item::update(float dt)
 {
-    if(particleEmitter) {particleEmitter->update(dt); particleEmitter->setPosition(posX + sprite->getWidth()/2 + xOffset, posY + sprite->getHeight()/2 + yOffset);}
+    if (particleEmitter)
+    {
+        particleEmitter->update(dt);
+        particleEmitter->setPosition(
+            posX + sprite->getWidth() / 2 - xOffset,
+            posY + sprite->getHeight() / 2 + yOffset);
+    }
 
-    posX = x - xOffset;
-    posY = y - yOffset;
+    
 }
 
-void Item::render(float cameraX, float cameraY)
+void Item::render(float cameraX, float cameraY, float x, float y)
 {
+    posX = x - xOffset;
+    posY = y - yOffset;
+
     sprite->render(posX - cameraX, posY - cameraY);
 
-    if(particleEmitter) particleEmitter->render(cameraX, cameraY);
+    if (particleEmitter)
+        particleEmitter->render(cameraX, cameraY);
 }
 
 int Item::getXOffset()
@@ -48,7 +56,7 @@ void Item::setFacingDirection(FacingDirection fd)
     sprite->setFlip((fd == RIGHT) ? SDL_FLIP_HORIZONTAL : SDL_FLIP_NONE);
 }
 
-void Item::setParticleEmitter(ParticleEmitter* pe)
+void Item::setParticleEmitter(ParticleEmitter *pe)
 {
     particleEmitter = pe;
 }

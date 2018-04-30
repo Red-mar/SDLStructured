@@ -1,13 +1,12 @@
 #include "label.h"
 #include "..\log.h"
 
-Label::Label(Window* window, float x, float y, int w, int h, std::string text):
-    UIElement(x, y, w, h),
+Label::Label(Window* window, float x, float y, int w, int h, std::string text, bool expire, float expireTime):
+    UIElement(x, y, w, h, expire, expireTime),
     window(window)
 {
     labelText = new Text(window);
     setText(text);
-    timeAlive = 10;
 }
 
 Label::~Label()
@@ -28,15 +27,14 @@ void Label::setFontSize(int size)
 
 void Label::update(float dt)
 {
-    timeAlive -= 1 * dt;
-}
+    if (expires)
+    {
+        timeAlive -= 1 * dt;
 
+    }
+    
+}
 void Label::render(float cameraX, float cameraY)
 {
     labelText->render(position->x - cameraX, position->y - cameraY);
-}
-
-bool Label::isDead()
-{
-    return timeAlive < 0;
 }

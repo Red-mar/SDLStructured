@@ -21,8 +21,8 @@ class Equipment
         void equip(EquipmentType type, Item* item);
         void unequip(EquipmentType type);
 
-        void render(float cameraX, float cameraY);
-        void update(float dt, FacingDirection fd, float posX, float posY);
+        void render(float cameraX, float cameraY, float posX, float posY);
+        void update(float dt, FacingDirection fd);
 
     private:
         std::unordered_map<EquipmentType, Item*> equipment;

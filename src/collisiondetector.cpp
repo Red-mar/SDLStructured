@@ -1,6 +1,7 @@
 #include "collisiondetector.h"
 #include "fallingobject.h"
 #include "player.h"
+#include "npc.h"
 
 CollisionDetector::CollisionDetector()
 {
@@ -26,7 +27,8 @@ void CollisionDetector::update() // this sucks
 
             for (auto object : observers)
             {
-                if (object->isType(NPC_TYPE)) continue;
+                if (object->isType(NPC_TYPE))
+                    continue;
                 if (fObj != object && fObj->collidedWith(object))
                 {
                     fObj->setVX(0);
@@ -79,7 +81,8 @@ void CollisionDetector::update() // this sucks
 
             for (auto object : observers)
             {
-                if (object->isType(NPC_TYPE)) continue;
+                if (object->isType(NPC_TYPE))
+                    continue;
                 if (fObj != object && fObj->collidedWith(object))
                 {
                     fObj->setVY(0);
@@ -91,6 +94,13 @@ void CollisionDetector::update() // this sucks
                     {
                         // others bottom
                         fObj->boundaryStatus = ON_GROUND;
+                        collisionHit.top = true;
+                        if (object->isType(NPC_TYPE) && fObj->isType(PLAYER_TYPE))
+                        {
+                            Npc *npc = (Npc *)object;
+                            npc->collision(object, collisionHit);
+                            Log::debug("hit npc head");
+                        }
                         /*
                 if (Block *note = dynamic_cast<Block *>(object))
                 {
@@ -103,6 +113,7 @@ void CollisionDetector::update() // this sucks
                     }
                     else
                     {
+                        collisionHit.bottom = true;
                         // others top
                     }
                 }

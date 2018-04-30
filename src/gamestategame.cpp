@@ -106,9 +106,18 @@ GameState::StateCode GameStateGame::update(float dt)
     {
         object->update(dt);
     }
-    for (auto element : uiElements)
+    for (std::unordered_map<std::string, UIElement *>::iterator it = uiElements.begin(); it != uiElements.end();)
     {
-        element.second->update(dt);
+        it->second->update(dt);
+        if (it->second->isDead())
+        {
+            delete (it->second);
+            it = uiElements.erase(it);
+        }
+        else
+        {
+            it++;
+        }
     }
 
     ((Label *)uiElements["lblPlayerpos"])->setText("hp:" + std::to_string(player->getHitpoints()));
@@ -136,10 +145,10 @@ void GameStateGame::render()
     testSprite->render(0 - camera->getX(), 960 - camera->getY());
     testSprite->render(1280 - camera->getX(), 960 - camera->getY());
 
-    for(auto object : objects)
+    for (auto object : objects)
     {
         object->render(camera->getX(), camera->getY());
-    }   
+    }
     tileMap->render(camera->getX(), camera->getY());
 
     for (auto element : uiElements)
@@ -271,8 +280,11 @@ void GameStateGame::updateInput()
 
     if (input->isKeyDown(KEY_0))
     {
-        Log::debug(std::to_string(soundEffects->getVolume()));
-        soundEffects->play("test");
+        if (uiElements["newLabel"] == NULL)
+        {
+            Label *newLabel = new Label(window, 100.f, 100.f, 5, 5, "newLabel", true, 1.f);
+            uiElements["newLabel"] = newLabel;
+        }
     }
 
     if (input->isKeyDown(KEY_MINUS))

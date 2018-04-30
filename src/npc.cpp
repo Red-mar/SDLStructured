@@ -1,6 +1,8 @@
 #include "npc.h"
+#include "player.h"
 
 Npc::Npc(Window *window, float x, float y, int w, int h, int hp, float acceleration) : FallingObject(x, y, w, h),
+                                                                                       Damageable(hp),
                                                                                        window(window),
                                                                                        acceleration(acceleration),
                                                                                        stoppedThreshold(acceleration / 5.f),
@@ -11,25 +13,28 @@ Npc::Npc(Window *window, float x, float y, int w, int h, int hp, float accelerat
                                                                                        soundEffects(nullptr),
                                                                                        movingPlatform(nullptr),
                                                                                        equipment(nullptr),
-                                                                                       frametime(rand()%10)
+                                                                                       frametime((float)(rand() % 10))
 {
     addType(NPC_TYPE);
     addType(DAMAGEABLEOBJECT_TYPE);
     soundEffects = SoundEffects::getInstance();
     equipment = new Equipment();
 
-    Item* item = nullptr;
+    Item *item = nullptr;
     switch (rand() % 3)
     {
-        case 0: 
-        {
-            item = new Item(window, "cool hat", "assets/hat.png", 5, 10);
-            item->setParticleEmitter(new ParticleEmitter(window, position->x, position->y));
-            equipment->equip(EquipmentType::HEAD, item);
-            break;
-        }
-        case 1: equipment->equip(EquipmentType::HEAD, new Item(window, "cool hat", "assets/hat2.png", 5, 27)); break;
-        case 2: break;
+    case 0:
+    {
+        item = new Item(window, "cool hat", "assets/hat.png", 5, 10);
+        item->setParticleEmitter(new ParticleEmitter(window, position->x, position->y));
+        equipment->equip(EquipmentType::HEAD, item);
+        break;
+    }
+    case 1:
+        equipment->equip(EquipmentType::HEAD, new Item(window, "cool hat", "assets/hat2.png", 5, 27));
+        break;
+    case 2:
+        break;
     default:
         break;
     }
@@ -43,7 +48,7 @@ Npc::Npc(Window *window, float x, float y, int w, int h, int hp, float accelerat
 
 Npc::~Npc()
 {
-    for(std::vector<Animation*>::iterator it = animations.begin(); it != animations.end(); it++ )
+    for (std::vector<Animation *>::iterator it = animations.begin(); it != animations.end(); it++)
     {
         delete (*it);
     }
@@ -54,11 +59,9 @@ void Npc::update(float dt)
 {
     preUpdate(dt);
     currentAnimation->update(dt);
-    equipment->update(dt, facingDirection, box->x, box->y);
-    frametime+=1*dt;
+    frametime += 1 * dt;
 
     doMovement();
-
 
     if (boundaryStatus == ON_GROUND)
     {
@@ -81,7 +84,9 @@ void Npc::update(float dt)
         this->facingDirection = RIGHT;
         if (boundaryStatus == ON_GROUND)
             currentAnimation = animations[RUNNING];
-    } else {
+    }
+    else
+    {
         this->facingDirection = LEFT;
         if (boundaryStatus == ON_GROUND)
             currentAnimation = animations[RUNNING];
@@ -108,11 +113,12 @@ void Npc::update(float dt)
     }
 
     // isAlive?
-    if (true)
+    if (!isDead())
     {
         desiredPosition->addX(vx * dt);
         desiredPosition->addY(vy * dt);
     }
+    equipment->update(dt, facingDirection);
 }
 
 void Npc::render(float cameraX, float cameraY)
@@ -122,8 +128,7 @@ void Npc::render(float cameraX, float cameraY)
     currentAnimation->render(position->x - cameraX,
                              position->y - cameraY);
 
-
-    equipment->render(cameraX, cameraY);
+    equipment->render(cameraX, cameraY, box->x, box->y);
 }
 
 void Npc::jump(bool willJump)
@@ -149,9 +154,15 @@ void Npc::doMovement()
     {
         switch (rand() % 3)
         {
-            case 0: actionState = WALK_LEFT; break;
-            case 1: actionState = WALK_RIGHT; break;
-            case 2: actionState = STAND_STILL; break;
+        case 0:
+            actionState = WALK_LEFT;
+            break;
+        case 1:
+            actionState = WALK_RIGHT;
+            break;
+        case 2:
+            actionState = STAND_STILL;
+            break;
         default:
             break;
         }
@@ -159,16 +170,29 @@ void Npc::doMovement()
 
     switch (actionState)
     {
-        case WALK_LEFT: targetVx = acceleration/-2; break;
-        case WALK_RIGHT: targetVx = acceleration/2; break;
-        case STAND_STILL: targetVx = 0; break;
+    case WALK_LEFT:
+        targetVx = acceleration / -2;
+        break;
+    case WALK_RIGHT:
+        targetVx = acceleration / 2;
+        break;
+    case STAND_STILL:
+        targetVx = 0;
+        break;
     default:
         break;
     }
-    
+
     if (frametime > 10)
     {
         actionState = NO_ACTION;
-        frametime = rand() % 5;
+        frametime = (float)(rand() % 5);
     }
+}
+
+void Npc::collision(Observer *observer, CollisionHit hit)
+{
+    
+    //lastCollisionHit = hit;
+    //damaging = true;
 }

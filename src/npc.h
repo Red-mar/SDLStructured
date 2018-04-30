@@ -10,8 +10,9 @@
 #include "soundeffects.h"
 #include "facingdirection.h"
 #include "equipment.h"
+#include "damageable.h"
 
-class Npc : public FallingObject
+class Npc : public FallingObject, public Damageable
 {
     public: 
         enum AnimationState { IDLE, RUNNING, JUMPING, ANIMATION_MAX};
@@ -32,7 +33,7 @@ class Npc : public FallingObject
         
         void die();
         void died();
-
+        void collision(Observer* observer, CollisionHit hit);
     private:
         void doMovement();
 

@@ -44,7 +44,6 @@ class GameStateGame: public GameState
         TileMap* tileMap;
         //Block* block;
         std::vector<GameObject*> objects;
-        //std::vector<UIElement*> uiElements;
         std::unordered_map<std::string, UIElement*> uiElements;
 
         SDL_TimerID timerID;

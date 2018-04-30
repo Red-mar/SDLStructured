@@ -15,23 +15,25 @@ Player::Player(Window *window, float x, float y, int w, int h, int hp, float acc
                                                                                              win(false),
                                                                                              thrust(600),
                                                                                              damaging(false),
-                                                                                             currentAnimation(nullptr),
+                                                                                             currentAnimation(IDLE),
                                                                                              soundEffects(nullptr),
                                                                                              movingPlatform(nullptr),
-                                                                                             equipment(nullptr)
+                                                                                             equipment(nullptr),
+                                                                                             isLayingDown(false)
 {
     addType(PLAYER_TYPE);
     addType(DAMAGEABLEOBJECT_TYPE);
     soundEffects = SoundEffects::getInstance();
     equipment = new Equipment();
-    equipment->equip(EquipmentType::HEAD, new Item(window, "cool hat", "assets/hat.png", 5, 10));
+    Item *item = new Item(window, "cool hat", "assets/hat.png", 5, 10);
+    item->setParticleEmitter(new ParticleEmitter(window, 0, 0));
+    equipment->equip(EquipmentType::HEAD, item);
 
     animations.resize(ANIMATION_MAX);
     animations[IDLE] = new Animation(window, w, h, "assets/idle.png", 3, 3);
     animations[RUNNING] = new Animation(window, w, h, "assets/walking.png", 4, 4);
     animations[JUMPING] = new Animation(window, w, h, "assets/jump.png", 1, 1);
-    animations[LAYING] = new Animation(window, w, h, "assets/down.png", 1, 1);
-    currentAnimation = animations[IDLE];
+    animations[LAYING] = new Animation(window, 63, 36, "assets/down.png", 1, 1);
 }
 
 Player::~Player()
@@ -46,23 +48,21 @@ Player::~Player()
 void Player::update(float dt)
 {
     preUpdate(dt);
-    currentAnimation->update(dt);
+    updateAnimation();
+    animations[currentAnimation]->update(dt);
 
     if (boundaryStatus == ON_GROUND)
     {
         jump(false);
-        currentAnimation = animations[IDLE];
     }
 
     if (isFalling())
     {
         boundaryStatus = OFF_GROUND;
-        currentAnimation = animations[JUMPING];
     }
-    if (box->bottom == boundary.bottom)
+    if (isFalling() && box->bottom == boundary.bottom)
     {
         boundaryStatus = ON_GROUND;
-        currentAnimation = animations[IDLE];
     }
 
     updateInput();
@@ -82,8 +82,6 @@ void Player::update(float dt)
     if (fabs(vx) < (stoppedThreshold * dt))
     {
         vx = 0;
-        if (boundaryStatus == ON_GROUND)
-            currentAnimation = animations[IDLE];
     }
 
     if (movingPlatform != NULL)
@@ -101,14 +99,12 @@ void Player::update(float dt)
         if (lastCollisionHit.right)
         {
             boundaryStatus = OFF_GROUND;
-            currentAnimation = animations[JUMPING];
             vx = -300;
             vy = -250;
         }
         else if (lastCollisionHit.left)
         {
             boundaryStatus = OFF_GROUND;
-            currentAnimation = animations[JUMPING];
             vx = 300;
             vy = -250;
         }
@@ -122,17 +118,17 @@ void Player::update(float dt)
         desiredPosition->addX(vx * dt);
         desiredPosition->addY(vy * dt);
     }
+    equipment->update(dt, facingDirection);
 }
 
 void Player::render(float cameraX, float cameraY)
 {
-    currentAnimation->setFlip((facingDirection == RIGHT) ? SDL_FLIP_NONE : SDL_FLIP_HORIZONTAL);
+    animations[currentAnimation]->setFlip((facingDirection == RIGHT) ? SDL_FLIP_NONE : SDL_FLIP_HORIZONTAL);
 
-    currentAnimation->render(position->x - cameraX,
-                             position->y - cameraY);
+    animations[currentAnimation]->render(position->x - cameraX,
+                                         position->y - cameraY);
 
-    equipment->update(0.f, facingDirection, position->x, position->y);
-    equipment->render(cameraX, cameraY);
+    equipment->render(cameraX, cameraY, box->x, box->y);
 }
 
 void Player::updateInput()
@@ -149,8 +145,6 @@ void Player::updateInput()
     {
         targetVx = (-1 * acceleration);
         facingDirection = LEFT;
-        if (boundaryStatus == ON_GROUND)
-            currentAnimation = animations[RUNNING];
 
         if (input->shift())
         {
@@ -163,8 +157,6 @@ void Player::updateInput()
     {
         this->targetVx = (this->acceleration);
         this->facingDirection = RIGHT;
-        if (boundaryStatus == ON_GROUND)
-            currentAnimation = animations[RUNNING];
 
         if (input->shift())
             this->targetVx *= turbo;
@@ -178,18 +170,16 @@ void Player::updateInput()
         //this->jumpSFX->play();
     }
 
-    if ((input->isKeyDown(KEY_DOWN) ||
-         input->isKeyDown(KEY_S)) &&
-        boundaryStatus == ON_GROUND)
+    if (input->isKeyDown(KEY_S) || 
+        input->isKeyDown(KEY_DOWN))
     {
-        currentAnimation = animations[LAYING];
+        isLayingDown = true;
     }
 
-    if ((input->isKeyUp(KEY_DOWN) ||
-         input->isKeyUp(KEY_S)) &&
-        boundaryStatus == ON_GROUND)
+    if (input->isKeyUp(KEY_S) || 
+        input->isKeyUp(KEY_DOWN))
     {
-        currentAnimation = animations[IDLE];
+        isLayingDown = false;
     }
 
     if (input->isKeyDown(KEY_DELETE))
@@ -199,12 +189,12 @@ void Player::updateInput()
 
     if (input->isKeyDown(KEY_KEYPAD_PLUS))
     {
-        currentAnimation->setAnimationSpeed(currentAnimation->getAnimationSpeed() + 1);
+        animations[currentAnimation]->setAnimationSpeed(animations[currentAnimation]->getAnimationSpeed() + 1);
     }
 
     if (input->isKeyDown(KEY_KEYPAD_MINUS))
     {
-        currentAnimation->setAnimationSpeed(currentAnimation->getAnimationSpeed() - 1);
+        animations[currentAnimation]->setAnimationSpeed(animations[currentAnimation]->getAnimationSpeed() - 1);
     }
 
     if (input->isKeyDown(KEY_INSERT))
@@ -234,7 +224,6 @@ void Player::jump(bool willJump)
             //isDoubleJumping = true;
         }
         soundEffects->play("jump");
-        currentAnimation = animations[JUMPING];
         boundaryStatus = OFF_GROUND;
         isJumping = true;
         vy = (-1 * thrust);
@@ -268,6 +257,34 @@ bool Player::hasWon()
 void Player::setMovingplatform(Block *platform)
 {
     movingPlatform = platform;
+}
+
+void Player::updateAnimation()
+{
+    if (boundaryStatus == ON_GROUND)
+    {
+        currentAnimation = IDLE;
+    }
+    if (vx > 50)
+    {
+        currentAnimation = RUNNING;
+        facingDirection = RIGHT;
+    } else if (vx < -50) {
+        currentAnimation = RUNNING;
+        facingDirection = LEFT;
+    }
+    if (isFalling() || isJumping)
+    {
+        currentAnimation = JUMPING;
+    }
+    else if (isLayingDown)
+    {
+        // TODO bounding box is wrong
+
+        //currentAnimation = LAYING;
+        //box->setX(63);
+        //box->setY(36);
+    }
 }
 
 void Player::collision(Observer *observer, CollisionHit hit)

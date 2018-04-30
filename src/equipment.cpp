@@ -27,19 +27,19 @@ void Equipment::unequip(EquipmentType type)
     equipment[type] = nullptr;
 }
 
-void Equipment::update(float dt, FacingDirection fd, float posX, float posY)
+void Equipment::update(float dt, FacingDirection fd)
 {
     for(auto item : equipment)
     {
         if(item.second != NULL)
         {
             item.second->setFacingDirection(fd);
-            item.second->update(dt, posX, posY);
+            item.second->update(dt);
         }
     }
 }
 
-void Equipment::render(float cameraX, float cameraY)
+void Equipment::render(float cameraX, float cameraY, float posX, float posY)
 {
     for (auto item : equipment)
     {
@@ -48,7 +48,7 @@ void Equipment::render(float cameraX, float cameraY)
             switch (item.first)
             {
             case HEAD:
-                item.second->render(cameraX, cameraY);
+                item.second->render(cameraX, cameraY, posX, posY);
                 break;
             case WEAPON:
                 //

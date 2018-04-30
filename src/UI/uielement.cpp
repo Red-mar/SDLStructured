@@ -1,8 +1,10 @@
 #include "uielement.h"
 
-UIElement::UIElement(float x, float y, int w, int h):
+UIElement::UIElement(float x, float y, int w, int h, bool expires, float expireTime):
     position(nullptr),
-    box(nullptr)
+    box(nullptr),
+    expires(expires),
+    timeAlive(expireTime)
 { 
     position = new Point(x, y);
     box = new Rectangle(x, y, w, h);
@@ -44,3 +46,7 @@ int UIElement::getHeight()
     return box->h;
 }
 
+bool UIElement::isDead()
+{
+    return timeAlive < 0;
+}

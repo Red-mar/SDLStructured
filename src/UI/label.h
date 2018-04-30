@@ -7,7 +7,7 @@
 class Label : public UIElement
 {
     public:
-        Label(Window* window, float x, float y, int w, int h, std::string text);
+        Label(Window* window, float x, float y, int w, int h, std::string text, bool expire = false, float expireTime = 1);
         ~Label();
 
         Label(const Label &) = delete;
@@ -19,12 +19,9 @@ class Label : public UIElement
         void update(float dt);
         void render(float cameraX = 0.0f, float cameraY = 0.0f);
 
-        bool isDead();
-
     private:
         Window* window;
         Text* labelText;
-        float timeAlive;
 };
 
 #endif // !LABEL_H
